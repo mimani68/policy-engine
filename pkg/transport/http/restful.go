@@ -6,7 +6,6 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/mimani68/policy-engine/core"
-	"github.com/mimani68/policy-engine/data"
 )
 
 func InitHttpServer(port int, policyInstance core.IPolicy) {
@@ -19,19 +18,8 @@ func InitHttpServer(port int, policyInstance core.IPolicy) {
 		})
 	})
 
-	app.Post("/validate", func(c *fiber.Ctx) error {
-		r := new(data.AccessRequestDto)
-		if err := c.BodyParser(r); err != nil {
-			return err
-		}
-
-		checkResult := policyInstance.CheckPolicy(r.Realm, "name", r.Name)
-
-		return c.JSON(map[string]interface{}{
-			"message": "Your policy validated",
-			"allowed": checkResult,
-		})
-	})
+	router := NewRouter(policyInstance)
+	app.Post("/validate/user", router.userRouter)
 
 	log.Fatal(app.Listen(ADDRESS))
 }
